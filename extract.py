@@ -123,19 +123,21 @@ def write_video_segments(segments, cap, fps, folder_path):
 
 def extract_all(data_path):
     segments_path = os.path.join(data_path, 'segments')
-    os.makedirs(segments_path)
+    os.makedirs(segments_path, exist_ok=True)
 
     videos = [f for f in os.listdir(data_path) if f.endswith('avi')]
     for video in videos:
-        cap = cv2.VideoCapture(os.path.join(data_path, video))
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        print(f"FPS: {fps}")
+        folder_path = os.path.join(segments_path, os.path.splitext(video)[0])
+        if not os.path.exists(folder_path):
+            cap = cv2.VideoCapture(os.path.join(data_path, video))
+            fps = cap.get(cv2.CAP_PROP_FPS)
+            print(f"FPS: {fps}")
 
-        # Detect stimuli
-        stimuli = detect_stimuli(cap, fps)
-        # Extract segments
-        segments = get_segments(stimuli, s_before=3, s_after=5, fps=fps)
-        # Save segments
-        write_video_segments(segments, cap, fps=fps, folder_path=os.path.join(segments_path, os.path.splitext(video)[0]))
-        cap.release()
-        cv2.destroyAllWindows()
+            # Detect stimuli
+            stimuli = detect_stimuli(cap, fps)
+            # Extract segments
+            segments = get_segments(stimuli, s_before=3, s_after=5, fps=fps)
+            # Save segments
+            write_video_segments(segments, cap, fps=fps, folder_path=folder_path)
+            cap.release()
+            cv2.destroyAllWindows()

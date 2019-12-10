@@ -22,7 +22,18 @@ class DataSet:
             self.save_to_csv()
 
     def add_segments(self, segments_path):
-        pass
+        segments_dirs = os.listdir(segments_path)
+        data = []
+        for dir in segments_dirs:
+            segments_dir = os.path.join(segments_path, dir)
+            segments = os.listdir(segments_dir)
+            data += [[segments_dir, os.path.splitext(segment)[0]] for segment in segments]
+            # segment_paths = list(map(lambda s: os.path.join(segments_path, s), segments))
+            # Set path to the specific directory, Onset to the video name
+            # data = [['v1', 10], ['v2', 15], ['v3', 14]]
+        df_added = pd.DataFrame(data, columns=['Path', 'Onset'])
+        self.df = self.df.append(df_added, ignore_index=True, verify_integrity=True, sort=False)
+        self.save_to_csv()
 
     def get_next_unclassified(self, user):
         if user not in self.df:

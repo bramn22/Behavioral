@@ -30,9 +30,14 @@
                 height: 35
                 size_hint_y: None
             Button:
-                text: 'Next'
-                on_press: root.play_next_video()
+                text: 'Extract'
+                on_release: root.extract_segments()
                 height: 35
+                size_hint_y: None
+            Button:
+                text: 'Next'
+                on_release: root.play_next_video()
+                height: 100
                 size_hint_y: None
     BoxLayout:
         orientation: 'horizontal'
