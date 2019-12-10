@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
+
 class DataSet:
     def __init__(self, segments_path=None, csv_path=None):
         if csv_path:
@@ -26,7 +27,7 @@ class DataSet:
     def get_next_unclassified(self, user):
         if user not in self.df:
             self.add_user(user)
-        unclassified = self.df.loc[self.df[user] == np.nan]
+        unclassified = self.df.loc[self.df[user].isnull()]
         return unclassified.sample()
 
     def add_record(self, user, record_id, classification):
@@ -38,6 +39,7 @@ class DataSet:
     def add_user(self, user):
         if user not in self.df:
             self.df[user] = np.nan
+            self.save_to_csv()
 
     def save_to_csv(self):
         self.df.to_csv('classifications.csv', mode='w')

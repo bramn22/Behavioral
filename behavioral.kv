@@ -2,32 +2,62 @@
 
 <VideoWidget>:
     orientation: 'vertical'
+    spacing: 10
     BoxLayout:
         orientation: 'horizontal'
+        spacing: 10
         height: 480
         size_hint_y: None
         Video:
             id: video
             state: 'play'
             options: {'eos': 'loop'}
-            allow_stretch: True
+            allow_stretch: False
             source: root.video_path
+            width: 640
+            size_hint_x: None
         BoxLayout:
             orientation: 'vertical'
             TextInput:
-                text: 'default'
-                font_size: 10
+                id: textinput
+                text: root.user
+                font_size: 20
                 size_hint_y: None
-                height: 30
+                height: 35
+            Button:
+                text: 'Set user'
+                on_press: root.set_user()
+                height: 35
+                size_hint_y: None
             Button:
                 text: 'Next'
-                on_press: root._get_next_video()
+                on_press: root.play_next_video()
+                height: 35
+                size_hint_y: None
     BoxLayout:
         orientation: 'horizontal'
-
         Label:
-            text: 'Hello!'
-            font_size: 10
+            text: ' 0: invalid \n 1: no response \n 2: orienting \n 3: deceleration \n 4: acceleration'
+            font_size: 12
 
         Button:
-            text: 'Text down'
+            text: 'Invalid'
+            on_release: root.set_invalid()
+            size_hint: (0.5, 1)
+            background_color: (1, 0, 0, 1)
+        Button:
+            text: 'No response'
+            on_release: root.set_valid()
+            size_hint: (0.5, 1)
+        Button:
+            text: 'Orienting'
+            on_release: root.set_valid()
+            size_hint: (0.5, 1)
+        Button:
+            text: 'Deceleration'
+            on_release: root.set_valid()
+            size_hint: (0.5, 1)
+        Button:
+            text: 'Acceleration'
+            on_release: root.set_valid()
+            size_hint: (0.5, 1)
