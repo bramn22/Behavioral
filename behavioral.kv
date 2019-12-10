@@ -1,0 +1,33 @@
+#:kivy 1.11.1
+
+<VideoWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'horizontal'
+        height: 480
+        size_hint_y: None
+        Video:
+            id: video
+            state: 'play'
+            options: {'eos': 'loop'}
+            allow_stretch: True
+            source: root.video_path
+        BoxLayout:
+            orientation: 'vertical'
+            TextInput:
+                text: 'default'
+                font_size: 10
+                size_hint_y: None
+                height: 30
+            Button:
+                text: 'Next'
+                on_press: root._get_next_video()
+    BoxLayout:
+        orientation: 'horizontal'
+
+        Label:
+            text: 'Hello!'
+            font_size: 10
+
+        Button:
+            text: 'Text down'

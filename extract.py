@@ -1,16 +1,8 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
-data_path = "./data"
-
-cap = cv2.VideoCapture('data/PO_M05_20191105_0508_50Hz_10ms_100p_2019-11-05-170319-0000.avi')
-fps = cap.get(cv2.CAP_PROP_FPS)
-# fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-# out = cv2.VideoWriter('output.mp4', fourcc, fps, (1280, 720))
-print(fps)
-template_path = 'template/template.png'
-template = cv2.imread(template_path)
 def extract_ROI(img):
     # kernel = np.ones((9, 9)) * -1
     # kernel[3:6, 3:6] = 1
@@ -28,7 +20,7 @@ def extract_stimuli(intens, cutoff):
     stimuli = list(map(lambda i: True if i >= cutoff else False, intens))
     return stimuli
 
-def filter_intens(intens):
+def filter_intens(intens, fps):
     # Intensity filtering
     max_threshold = 480000
     min_threshold = 125
@@ -62,7 +54,7 @@ def filter_intens(intens):
     return stimuli
 
 
-def get_segments(stimuli, s_before, s_after):
+def get_segments(stimuli, s_before, s_after, fps):
     n_before = int(s_before*fps)
     n_after = int(s_after*fps) + 1 # +1 is the stimulus length
 
@@ -77,7 +69,7 @@ def get_segments(stimuli, s_before, s_after):
     return segments
 
 
-def process_video(cap):
+def detect_stimuli(cap, fps):
     intens = []
     n = 0
     while cap.isOpened():
@@ -90,21 +82,21 @@ def process_video(cap):
             n += 1
         else:
             break
-    stimuli = filter_intens(intens)
+    stimuli = filter_intens(intens, fps)
     plt.plot(range(len(stimuli)), stimuli)
     plt.show()
-    s_before = 3
-    s_after = 5
-    return get_segments(stimuli, s_before, s_after)
+    return stimuli
 
 
-def extract_video_segments(segments):
+def write_video_segments(segments, cap, fps, folder_path):
+    os.makedirs(folder_path)
+
     for (start, end) in segments:
         cap.set(cv2.CAP_PROP_POS_FRAMES, start)
         n = start
         # fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter(f'{start}_{end}.avi', fourcc, int(fps), (640,480))
+        out = cv2.VideoWriter(os.path.join(folder_path, f'{start}_{end}.avi'), fourcc, int(fps), (640,480))
 
         while cap.isOpened() and n < end:
             print(n)
@@ -118,8 +110,32 @@ def extract_video_segments(segments):
         out.release()
 
 
-segments = process_video(cap)
-print(segments)
-extract_video_segments(segments)
-cap.release()
-cv2.destroyAllWindows()
+# def extract(filename):
+#     cap = cv2.VideoCapture(filename)
+#     fps = cap.get(cv2.CAP_PROP_FPS)
+#     print(f"FPS: {fps}")
+#     segments = process_video(cap)
+#     print(segments)
+#     extract_video_segments(segments, cap)
+#     cap.release()
+#     cv2.destroyAllWindows()
+
+
+def extract_all(data_path):
+    segments_path = os.path.join(data_path, 'segments')
+    os.makedirs(segments_path)
+
+    videos = [f for f in os.listdir(data_path) if f.endswith('avi')]
+    for video in videos:
+        cap = cv2.VideoCapture(os.path.join(data_path, video))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        print(f"FPS: {fps}")
+
+        # Detect stimuli
+        stimuli = detect_stimuli(cap, fps)
+        # Extract segments
+        segments = get_segments(stimuli, s_before=3, s_after=5, fps=fps)
+        # Save segments
+        write_video_segments(segments, cap, fps=fps, folder_path=os.path.join(segments_path, os.path.splitext(video)[0]))
+        cap.release()
+        cv2.destroyAllWindows()
