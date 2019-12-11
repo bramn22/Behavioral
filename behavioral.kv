@@ -47,22 +47,27 @@
 
         Button:
             text: 'Invalid'
-            on_release: root.set_invalid()
+            on_release: root.set_classification('invalid')
             size_hint: (0.5, 1)
             background_color: (1, 0, 0, 1)
+            state: root.invalid_state
         Button:
             text: 'No response'
-            on_release: root.set_valid()
+            on_release: root.set_classification('no response')
             size_hint: (0.5, 1)
+            state: root.no_response_state
         Button:
             text: 'Orienting'
-            on_release: root.set_valid()
+            on_release: root.set_classification('orienting')
             size_hint: (0.5, 1)
+            state: root.orienting_state
         Button:
             text: 'Deceleration'
-            on_release: root.set_valid()
+            on_release: root.set_classification('deceleration')
             size_hint: (0.5, 1)
+            state: root.deceleration_state
         Button:
             text: 'Acceleration'
-            on_release: root.set_valid()
+            on_release: root.set_classification('acceleration')
             size_hint: (0.5, 1)
+            state: root.acceleration_state

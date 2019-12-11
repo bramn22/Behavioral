@@ -27,8 +27,8 @@ def filter_intens(intens, fps):
 
     intens = list(map(lambda i: i if i >= min_threshold and i <= max_threshold else 0, intens))
 
-    plt.plot(range(len(intens)), intens)
-    plt.show()
+    # plt.plot(range(len(intens)), intens)
+    # plt.show()
 
     intens = np.asarray(intens)
     # intens_norm = intens
@@ -36,8 +36,8 @@ def filter_intens(intens, fps):
     intens_norm = intens_norm / np.max(intens_norm)
 
     stimuli = extract_stimuli(intens_norm, 0.6)
-    plt.plot(range(len(stimuli)), stimuli)
-    plt.show()
+    # plt.plot(range(len(stimuli)), stimuli)
+    # plt.show()
 
     s_stimulus = 0.9
 
@@ -77,14 +77,14 @@ def detect_stimuli(cap, fps):
         ret, frame = cap.read()
         if ret:
             intens.append(extract_ROI(frame))
-            cv2.imshow('test', frame)
+            cv2.imshow('Stimulus detection', frame)
             cv2.waitKey(1)
             n += 1
         else:
             break
     stimuli = filter_intens(intens, fps)
-    plt.plot(range(len(stimuli)), stimuli)
-    plt.show()
+    # plt.plot(range(len(stimuli)), stimuli)
+    # plt.show()
     return stimuli
 
 
@@ -121,23 +121,25 @@ def write_video_segments(segments, cap, fps, folder_path):
 #     cv2.destroyAllWindows()
 
 
-def extract_all(data_path):
-    segments_path = os.path.join(data_path, 'segments')
+def extract_all(data_path, segments_path):
     os.makedirs(segments_path, exist_ok=True)
 
-    videos = [f for f in os.listdir(data_path) if f.endswith('avi')]
-    for video in videos:
-        folder_path = os.path.join(segments_path, os.path.splitext(video)[0])
-        if not os.path.exists(folder_path):
-            cap = cv2.VideoCapture(os.path.join(data_path, video))
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            print(f"FPS: {fps}")
+    experiments = [f for f in os.listdir(data_path) if f != 'segments']
+    for experiment in experiments:
+        experiment_path = os.path.join(data_path, experiment)
+        videos = [f for f in os.listdir(experiment_path) if f.endswith('avi')]
+        for video in videos:
+            folder_path = os.path.join(segments_path, experiment, os.path.splitext(video)[0])
+            if not os.path.exists(folder_path):
+                cap = cv2.VideoCapture(os.path.join(experiment_path, video))
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                print(f"FPS: {fps}")
 
-            # Detect stimuli
-            stimuli = detect_stimuli(cap, fps)
-            # Extract segments
-            segments = get_segments(stimuli, s_before=3, s_after=5, fps=fps)
-            # Save segments
-            write_video_segments(segments, cap, fps=fps, folder_path=folder_path)
-            cap.release()
-            cv2.destroyAllWindows()
+                # Detect stimuli
+                stimuli = detect_stimuli(cap, fps)
+                # Extract segments
+                segments = get_segments(stimuli, s_before=3, s_after=5, fps=fps)
+                # Save segments
+                write_video_segments(segments, cap, fps=fps, folder_path=folder_path)
+                cap.release()
+                cv2.destroyAllWindows()

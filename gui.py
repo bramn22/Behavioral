@@ -10,23 +10,25 @@ from kivy.core.window import Window
 from dataset import DataSet
 import os
 import extract
-
+import utils
 
 class VideoWidget(BoxLayout):
     user = properties.StringProperty('')
     video_path = properties.StringProperty('')
     current_key_action = None
 
-    def __init__(self, dataset, **kwargs):
+    invalid_state = properties.StringProperty('normal')
+    no_response_state = properties.StringProperty('normal')
+    orienting_state = properties.StringProperty('normal')
+    deceleration_state = properties.StringProperty('normal')
+    acceleration_state = properties.StringProperty('normal')
+
+    def __init__(self, dataset, cfg, **kwargs):
         super().__init__(**kwargs)
         self.dataset = dataset
-        self.key_dict = {# relates to 0, 1, 2, 3 and 4
-            39: self.set_invalid,
-            30: self.set_valid,
-            31: self.set_valid,
-            32: self.set_valid,
-            33: self.set_valid,
-        }
+        self.cfg = cfg
+        self.user = cfg['user']
+        self.set_user()
         Window.bind(on_key_up=self._keyup)
 
     def play_next_video(self):
@@ -37,14 +39,16 @@ class VideoWidget(BoxLayout):
                 'path': os.path.join(next_video['Path'].item(), next_video['Onset'].item()+'.avi')}
         self.video_path = self.current_video['path']
 
-    def set_invalid(self):
-        print("Set invalid")
-        self.dataset.add_record(self.user, self.current_video['id'], 'invalid')
-        self.play_next_video()
-
-    def set_valid(self):
-        print("Set valid")
-        self.dataset.add_record(self.user, self.current_video['id'], 'valid')
+    def set_classification(self, type):
+        print(f"Set classification - {type}")
+        classification_dict = {
+            'invalid': 0,
+            'no response': 1,
+            'orienting': 2,
+            'deceleration': 3,
+            'acceleration': 4
+        }
+        self.dataset.add_record(self.user, self.current_video['id'], classification_dict[type])
         self.play_next_video()
 
     def set_user(self):
@@ -53,32 +57,60 @@ class VideoWidget(BoxLayout):
         self.play_next_video()
 
     def extract_segments(self):
-        extract.extract_all(data_path='data')
-        self.dataset.add_segments(segments_path='data/segments')
+        extract.extract_all(data_path=self.cfg['data_path'], segments_path=self.cfg['segments_path'])
+        self.dataset.add_segments(segments_path=self.cfg['segments_path'])
 
-    def _execute_key_action(self):
-        if self.current_key_action:
-            self.current_key_action()
+    # def _execute_key_action(self):
+    #     if self.current_key_action:
+    #         self.current_key_action()
 
     def _keyup(self, *args):
-        if args[2] == 40: # Enter key
-            self._execute_key_action()
-        fn = self.key_dict.get(args[2], None)
-        self.current_key_action = fn
+        self.invalid_state = 'normal'
+        self.no_response_state = 'normal'
+        self.orienting_state = 'normal'
+        self.deceleration_state = 'normal'
+        self.acceleration_state = 'normal'
+        key = args[2]
+        if key == 39:
+            self.invalid_state = 'down'
+            self.current_key_action = 'invalid'
+        elif key == 30:
+            self.no_response_state = 'down'
+            self.current_key_action = 'no response'
+        elif key == 31:
+            self.orienting_state = 'down'
+            self.current_key_action = 'orienting'
+        elif key == 32:
+            self.deceleration_state = 'down'
+            self.current_key_action = 'deceleration'
+        elif key == 33:
+            self.acceleration_state = 'down'
+            self.current_key_action = 'acceleration'
+        elif key == 40: # Enter key
+            if self.current_key_action:
+                self.set_classification(self.current_key_action)
+        else:
+            self.current_key_action = None
+
+            # self._execute_key_action()
+        # fn = self.key_dict.get(args[2], None)
+        # self.current_key_action = fn
         print(args)
 
 
 class BehavioralApp(App):
     # Returns root widget
     def build(self):
-        if os.path.exists('classifications.csv'):
-            print('Existing classification csv found, loading the file')
-            dataset = DataSet(csv_path='classifications.csv')
+        cfg = utils.load_config()
+
+        if os.path.exists(f"{cfg['user']}.csv"):
+            print('Existing csv found, loading the file')
+            dataset = DataSet(cfg, create_csv=False)
         else:
-            print('No classification csv found, creating one using segmented data')
-            extract.extract_all(data_path='data')
-            dataset = DataSet(segments_path='data/segments')
-        return VideoWidget(dataset)
+            print('No csv found, creating one using segmented data')
+            extract.extract_all(data_path=cfg['data_path'], segments_path=cfg['segments_path'])
+            dataset = DataSet(cfg, create_csv=True)
+        return VideoWidget(dataset, cfg)
 
 
 if __name__ == "__main__":
