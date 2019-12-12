@@ -11,7 +11,7 @@ def extract_ROI(img):
     #     plt.imshow(res)
     #     plt.show()
     # res = cv2.filter2D(img, ddepth=-1, kernel=kernel)
-    x, y, w, h = 570, 270, 60, 60
+    x, y, w, h = 560, 265, 75, 75
     intens = np.max(img[y:y+h, x:x+w, :])
     cv2.rectangle(img, (x, y), (x+w, y+h), color=(0, 0, 255), thickness=5)
     return intens
