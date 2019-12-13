@@ -47,7 +47,6 @@ class VideoWidget(BoxLayout):
         video_pos = self.ids['video'].position
         # print(video_pos)
         if video_pos >= 3 and video_pos < 4:
-            print("show onset")
             self.onset_color = (1, 1, 1, 0.8)
         else:
             self.onset_color = (1, 1, 1, 0)
