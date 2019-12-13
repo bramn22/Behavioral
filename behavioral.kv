@@ -3,11 +3,19 @@
 <VideoWidget>:
     orientation: 'vertical'
     spacing: 10
+    onset_color: 0, 1, 0, 0.5
+    canvas:
+        Color:
+            rgba: self.onset_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
     BoxLayout:
         orientation: 'horizontal'
         spacing: 10
         height: 480
         size_hint_y: None
+
         Video:
             id: video
             state: 'play'
@@ -16,6 +24,8 @@
             source: root.video_path
             width: 640
             size_hint_x: None
+            on_position: root.show_onset()
+            spacing: 10
         BoxLayout:
             orientation: 'vertical'
             TextInput:

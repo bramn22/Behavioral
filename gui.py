@@ -6,6 +6,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
+from functools import partial
+from kivy.clock import Clock
+from kivy.graphics import Color
 
 from dataset import DataSet
 import os
@@ -38,6 +41,18 @@ class VideoWidget(BoxLayout):
         self.current_video = {'id': next_video.index.item(),
                 'path': os.path.join(next_video['Path'].item(), next_video['Onset'].item()+'.avi')}
         self.video_path = self.current_video['path']
+        # Clock.schedule_interval(self.show_onset, 8)
+
+    def show_onset(self):
+        video_pos = self.ids['video'].position
+        # print(video_pos)
+        if video_pos >= 3 and video_pos < 4:
+            print("show onset")
+            self.onset_color = (1, 1, 1, 0.8)
+        else:
+            self.onset_color = (1, 1, 1, 0)
+
+        # Clock.schedule_interval(self.show_onset, 8)
 
     def set_classification(self, type):
         print(f"Set classification - {type}")
